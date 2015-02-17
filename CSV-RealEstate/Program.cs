@@ -39,7 +39,8 @@ namespace CSV_RealEstate
             Console.WriteLine(averagePrice);
             
             //Display the average price per square foot for a condo in Sacramento. Round to 2 decimal places. Use the GetAveragePricePerSquareFootByRealEstateTypeAndCity() function for testing.
-            //int averagePricePerFoot = realEstateSaleList.Where(x => x.City == "SACRAMENTO").Where(x => x.RealEstateType == RealEstateType.Condo).Average(x => x.SquareFeet && x.Price);
+            double averagePricePerFoot = realEstateSaleList.Where(x => x.City == "SACRAMENTO").Where(x => x.RealEstateType == RealEstateType.Condo).Average(x => x.Price / x.SquareFeet);
+            Console.WriteLine("\n" + Math.Round(Convert.ToDecimal(averagePricePerFoot), 2));
 
             //Display the number of all sales that were completed on a Wednesday.  Use the GetNumberOfSalesByDayOfWeek() function for testing.
             int numberOfSales = realEstateSaleList.Where(x => x.SaleDate.DayOfWeek == DayOfWeek.Wednesday).Select(x => x.Price).Count();
@@ -51,21 +52,38 @@ namespace CSV_RealEstate
             double numberOfBedrooms = realEstateSaleList.Where(x => x.City == "SACRAMENTO" && x.RealEstateType == RealEstateType.Residential && x.Price > 30000).Average(x => x.Beds);
             Console.WriteLine(numberOfBedrooms);
 
+            GetAveragePricePerSquareFootByRealEstateTypeAndCity(realEstateSaleList, RealEstateType.Condo, "SACRAMENTO");
+
             //Extra Credit:
             //Display top 5 cities by the number of homes sold (using the GroupBy extension)
             // Use the GetTop5CitiesByNumberOfHomesSold() function for testing.
+            List<IGrouping<string, RealEstateSale>> myList = realEstateSaleList.GroupBy(x => x.City).OrderByDescending(x => x.Sum(y => y.Price)).ToList();
+            List<IGrouping<string, RealEstateSale>> holdList = realEstateSaleList.GroupBy(x => x.City).OrderByDescending(x => x.Count()).ToList();
+            List<string> returnList = new List<string>();
+            for (int i = 0; i < 5; i++)
+            {
+                returnList.Add(holdList.ElementAt(i).Key);
+            }
+            
 
             Console.ReadKey();
         }
-
+        /// <summary>
+        /// Processes an csv file and creates a list of RealEstate objects
+        /// </summary>
+        /// <returns>Returns a list of objects</returns>
         public static List<RealEstateSale> GetRealEstateSaleList()
         {
          
             //read in the realestatedata.csv file.  As you process each row, you'll add a new 
             // RealEstateData object to the list for each row of the document, excluding the first.  bool skipFirstLine = true;
+            //declearing new streamreader
             StreamReader reader = new StreamReader("realestatedata.csv");
+            //skipping first line
             string firstline = reader.ReadLine();
+            //creating a list of objects
             List<RealEstateSale> list = new List<RealEstateSale>();
+            //reading csv file and adding each line to my list
             while (!reader.EndOfStream)
             {
                 list.Add(new RealEstateSale(reader.ReadLine()));
@@ -76,14 +94,12 @@ namespace CSV_RealEstate
 
         public static double GetAverageSquareFootageByRealEstateTypeAndCity(List<RealEstateSale> realEstateDataList, RealEstateType realEstateType, string city) 
         {
-            return realEstateDataList.Where(x => x.City == city.ToUpper()).Where(x => x.RealEstateType == realEstateType).Average(x => x.SquareFeet); ;
+            return realEstateDataList.Where(x => x.City == city.ToUpper()).Where(x => x.RealEstateType == realEstateType).Average(x => x.SquareFeet); 
         }
 
         public static decimal GetTotalSalesByRealEstateTypeAndCity(List<RealEstateSale> realEstateDataList, RealEstateType realEstateType, string city)
         {
             return Convert.ToDecimal(realEstateDataList.Where(x => x.City == city.ToUpper()).Where(x => x.RealEstateType == realEstateType).Sum(x => x.Price));
-
-            //QUESTION about converting my int to decimal. How?
         }
 
         public static int GetNumberOfSalesByRealEstateTypeAndZip(List<RealEstateSale> realEstateDataList, RealEstateType realEstateType, string zipcode)
@@ -95,18 +111,19 @@ namespace CSV_RealEstate
         public static decimal GetAverageSalePriceByRealEstateTypeAndCity(List<RealEstateSale> realEstateDataList, RealEstateType realEstateType, string city)
         {
             //Must round to 2 decimal points
-            double holderOne = realEstateDataList.Where(x => x.City == city.ToUpper()).Where(x => x.RealEstateType == realEstateType).Average(x => x.Price);
-            decimal holderTwo = Convert.ToDecimal(holderOne);
-            return Math.Round(holderTwo, 2);
-
-            //QUESTIONS 1)why I can't use in Math.Round my double, but only decimal
-            //2)Is there a quiker way to convert my double to decimal
-            //3)Can I return decimal from Average instead of double
+            //double holderOne = realEstateDataList.Where(x => x.City == city.ToUpper()).Where(x => x.RealEstateType == realEstateType).Average(x => x.Price);
+            //decimal holderTwo = Convert.ToDecimal(holderOne);
+            //return Math.Round(holderTwo, 2);
+            return Math.Round(Convert.ToDecimal(realEstateDataList.Where(x => x.City == city.ToUpper()).Where(x => x.RealEstateType == realEstateType).Average(x => x.Price)), 2);
         }
         public static decimal GetAveragePricePerSquareFootByRealEstateTypeAndCity(List<RealEstateSale> realEstateDataList, RealEstateType realEstateType, string city)
         {
             //Must round to 2 decimal points
-            return 0.0m;
+            //double holder = realEstateDataList.Where(x => x.City == city.ToUpper()).Where(x => x.RealEstateType == realEstateType).Sum(x => x.Price);
+            //double holderTwo = realEstateDataList.Where(x => x.City == city.ToUpper()).Where(x => x.RealEstateType == realEstateType).Sum(x => x.SquareFeet);
+            //double result = holder / holderTwo;
+            //return Math.Round(Convert.ToDecimal(result), 2);
+            return Math.Round(Convert.ToDecimal(realEstateDataList.Where(x => x.City == city.ToUpper()).Where(x => x.RealEstateType == realEstateType).Average(x => x.Price / x.SquareFeet)), 2);
         }
 
         public static int GetNumberOfSalesByDayOfWeek(List<RealEstateSale> realEstateDataList, DayOfWeek dayOfWeek)
@@ -123,10 +140,24 @@ namespace CSV_RealEstate
 
         public static List<string> GetTop5CitiesByNumberOfHomesSold(List<RealEstateSale> realEstateDataList)
         {
-            return new List<string>();
+            //grouping by cities and ordering by the number of sales
+            List<IGrouping<string, RealEstateSale>> holdList = realEstateDataList.GroupBy(x => x.City).OrderByDescending(x => x.Count()).ToList();
+            //creating a list of string to store the names of cities
+            List<string> returnList = new List<string>();
+            //adding cities names to my return list
+            for (int i = 0; i < 5; i++)
+            {
+                returnList.Add(holdList.ElementAt(i).Key);
+            }
+            return returnList;
+            //OR
+            //return realEstateDataList.GroupBy(x => x.City).OrderByDescending(x => x.Count()).Select(x => x.Key).Take(5).ToList();
+            return realEstateDataList.GroupBy(x => x.City).OrderByDescending(x => x.Count()).Select(x => x.Select(y => y.City).Take(5).ToString().ToList());
         }
     }
-
+    /// <summary>
+    /// Enumerable for Real estate type
+    /// </summary>
     public enum RealEstateType
     {
         //fill in with enum types: Residential, MultiFamily, Condo, Lot
@@ -138,6 +169,8 @@ namespace CSV_RealEstate
     class RealEstateSale
     {
         //Create properties, using the correct data types (not all are strings) for all columns of the CSV
+        
+        //creating properties
         private string _street;
         public string Street
         {
@@ -176,8 +209,8 @@ namespace CSV_RealEstate
             get { return _baths; }
             set { _baths = value; }
         }
-        private int _squareFeet;
-        public int SquareFeet
+        private double _squareFeet;
+        public double SquareFeet
         {
             get { return _squareFeet; }
             set { _squareFeet = value; }
@@ -207,6 +240,10 @@ namespace CSV_RealEstate
 
         //The constructor will take a single string arguement.  This string will be one line of the real estate data.
         // Inside the constructor, you will seperate the values into their corrosponding properties, and do the necessary conversions
+        /// <summary>
+        /// Constructor that takes a string, breaks it down by comma and initializes properties
+        /// </summary>
+        /// <param name="inputLine"></param>
         public RealEstateSale(string inputLine)
         {
             string[] realEstateList = inputLine.Split(',');
@@ -217,7 +254,8 @@ namespace CSV_RealEstate
             this.State = realEstateList[3];
             this.Beds = int.Parse(realEstateList[4]);
             this.Baths = int.Parse(realEstateList[5]);
-            this.SquareFeet = int.Parse(realEstateList[6]);
+            this.SquareFeet = Convert.ToDouble(realEstateList[6]);
+            //here I'm checking the input values for setting correct enumerable values
             if (int.Parse(realEstateList[6]) == 0)
             {
                 this.RealEstateType = RealEstateType.Lot;
